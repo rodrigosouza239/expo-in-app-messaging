@@ -1,0 +1,22 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.inappmessaging'
+version = '1.0.3'
+
+android {
+  namespace "expo.modules.inappmessaging"
+  defaultConfig {
+    versionCode 1
+    versionName "1.0.3"
+  }
+  lintOptions {
+    abortOnError false
+  }
+}
+
+dependencies {
+   implementation("com.google.firebase:firebase-inappmessaging:22.0.2")
+}

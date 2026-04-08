@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "expo-in-app-messaging-example",
+    "slug": "expo-in-app-messaging-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "expo.modules.inappmessaging",
+      "googleServicesFile": "./GoogleService-Info.plist"
+    },
+    "android": {
+      "package": "expo.modules.inappmessaging",
+      "googleServicesFile": "./google-services.json",
+      "edgeToEdgeEnabled": true,
+      // Change this to true
+      "predictiveBackGestureEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "@react-native-firebase/app",
+        {
+          "androidInAppMessaging": true
+        }
+      ]
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["ExpoInAppMessagingModule"],
+    "appDelegateSubscribers": ["ExpoInAppMessagingLifecycleDelegate"]
+  },
+  "android": {
+    "modules": ["expo.modules.inappmessaging.ExpoInAppMessagingModule"]
+  }
+}
