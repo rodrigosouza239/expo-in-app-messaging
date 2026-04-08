@@ -1,36 +1,74 @@
-# @rodrigo-souza/expo-in-app-messaging
+# 🚀 @rodrigo-souza/expo-in-app-messaging
 
-Módulo nativo para **Expo** que permite interceptar mensagens do **Firebase In-App Messaging (FIAM)**. Este pacote foi criado para desenvolvedores que precisam de total liberdade criativa, permitindo o uso de **UI Customizada** (modais próprios) em vez dos layouts padrão do Firebase.
+Módulo nativo para **Expo** que permite interceptar mensagens do
+**Firebase In-App Messaging (FIAM)** e renderizá-las com **UI totalmente
+customizada**.
 
----
+Ideal para quem precisa sair dos layouts padrão do Firebase e criar
+experiências mais ricas --- como fazem apps como bancos, marketplaces e
+super apps.
 
-## ⚠️ Atenção: Requisitos de Configuração
+------------------------------------------------------------------------
 
-Para garantir que o módulo funcione corretamente e evitar conflitos nativos:
+## ✨ Features
 
-1. **Não instale** o pacote oficial `@react-native-firebase/in-app-messaging`. Este módulo já gerencia a interceptação nativa internamente.
-2. **Dependências Base:** Você deve ter instalado apenas:
-   ```bash
-   npx expo install @react-native-firebase/app @react-native-firebase/installations
+-   🔥 Intercepta mensagens do **Firebase In-App Messaging**
+-   🎨 Permite criar **modais e componentes 100% customizados**
+-   ⚡ Suporte a:
+    -   Runtime (app aberto)
+    -   Cold Start (app aberto via trigger)
+-   📡 Integração com eventos do Firebase (Analytics Trigger)
+-   🧠 Controle programático de exibição (suppress)
 
-3 Arquivos de Configuração: O google-services.json (Android) e o GoogleService-Info.plist (iOS) devem estar na raiz do seu projeto e configurados no seu app.json.
+------------------------------------------------------------------------
 
-4 Development Builds: Por ser um módulo nativo, ele não funciona no Expo Go. Utilize npx expo run:android ou npx expo run:ios.
+## ⚠️ Requisitos Importantes
 
-🚀 Instalação
+### ❌ NÃO instale
 
+``` bash
+@react-native-firebase/in-app-messaging
+```
+
+------------------------------------------------------------------------
+
+### ✅ Instale apenas as dependências base
+
+``` bash
+npx expo install @react-native-firebase/app @react-native-firebase/installations
+```
+
+------------------------------------------------------------------------
+
+### 📁 Arquivos obrigatórios
+
+-   google-services.json (Android)
+-   GoogleService-Info.plist (iOS)
+
+------------------------------------------------------------------------
+
+### 📱 Development Build obrigatório
+
+``` bash
+npx expo run:android
+npx expo run:ios
+```
+
+------------------------------------------------------------------------
+
+## 📦 Instalação
+
+``` bash
 npx expo install @rodrigo-souza/expo-in-app-messaging
+```
 
-💻 Exemplo de Implementação
+------------------------------------------------------------------------
 
-O módulo captura mensagens em dois cenários:
+## 🧩 Exemplo Completo
 
-Runtime: Quando o app já está aberto (via Event Listener).
+### 1. CustomIAMModal.tsx
 
-Cold Start: Quando o app é aberto através de um gatilho do Firebase (via busca de mensagem pendente).
-
-1. Criando o Componente de Modal (CustomIAMModal.tsx)
-
+``` tsx
 import { Modal, TouchableOpacity, View, Image, Text, Linking, StyleSheet } from "react-native";
 
 export const CustomIAMModal = ({ visible, data, onClose }) => {
@@ -43,26 +81,26 @@ export const CustomIAMModal = ({ visible, data, onClose }) => {
           <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
             <Text style={{ fontSize: 20 }}>✕</Text>
           </TouchableOpacity>
-          
+
           {data.imageUrl ? (
             <Image source={{ uri: data.imageUrl }} style={styles.banner} />
           ) : (
-             <View style={styles.headerPlaceholder}>
-                <Text style={styles.emoji}>🤩</Text>
-             </View>
+            <View style={styles.headerPlaceholder}>
+              <Text style={styles.emoji}>🤩</Text>
+            </View>
           )}
 
           <Text style={styles.title}>{data.title}</Text>
           <Text style={styles.body}>{data.body}</Text>
 
-          <TouchableOpacity 
-            style={styles.button} 
+          <TouchableOpacity
+            style={styles.button}
             onPress={() => {
-               if (data.actionUrl) Linking.openURL(data.actionUrl);
-               onClose();
+              if (data.actionUrl) Linking.openURL(data.actionUrl);
+              onClose();
             }}
           >
-            <Text style={styles.buttonText}>Acessar Agora!</Text>
+            <Text style={styles.buttonText}>Acessar agora</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -71,82 +109,77 @@ export const CustomIAMModal = ({ visible, data, onClose }) => {
 };
 
 const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalContainer: { width: '100%', maxWidth: 400, backgroundColor: '#FFFFFF', borderRadius: 20, overflow: 'hidden', alignItems: 'center', paddingBottom: 25, elevation: 10 },
-  closeBtn: { position: 'absolute', top: 15, right: 15, zIndex: 10, backgroundColor: 'rgba(255, 255, 255, 0.8)', borderRadius: 15, width: 30, height: 30, justifyContent: 'center', alignItems: 'center' },
-  banner: { width: '100%', height: 200, resizeMode: 'cover' },
-  headerPlaceholder: { width: '100%', height: 150, backgroundColor: '#FFDB00', justifyContent: 'center', alignItems: 'center' },
-  emoji: { fontSize: 60 },
-  title: { fontSize: 22, fontWeight: 'bold', color: '#333', marginTop: 20, paddingHorizontal: 20, textAlign: 'center' },
-  body: { fontSize: 16, color: '#666', textAlign: 'center', marginTop: 10, paddingHorizontal: 25, lineDirection: 22 },
-  button: { marginTop: 25, backgroundColor: '#3483FA', paddingVertical: 14, paddingHorizontal: 40, borderRadius: 8, width: '85%', alignItems: 'center' },
-  buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
 });
+```
 
-2. Integrando no App.tsx
+------------------------------------------------------------------------
 
+### 2. App.tsx
+
+``` tsx
 import { useEvent } from 'expo';
 import ExpoInAppMessaging from '@rodrigo-souza/expo-in-app-messaging';
 import installations from '@react-native-firebase/installations';
 import { useEffect, useState } from 'react';
-import { View, SafeAreaView } from 'react-native';
-import { CustomIAMModal } from './components/CustomIAMModal';
+import { SafeAreaView } from 'react-native';
+import { CustomIAMModal } from './CustomIAMModal';
 
 export default function App() {
-  const payloadFromEvent = useEvent(ExpoInAppMessaging, 'onMessage');
-  const [localMessage, setLocalMessage] = useState<any>(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const payload = useEvent(ExpoInAppMessaging, 'onMessage');
+
+  const [message, setMessage] = useState(null);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     async function checkPending() {
-      try {
-        // ID necessário para enviar mensagens de teste via Console do Firebase
-        const id = await installations().getId();
-        console.log('🆔 FIAM Test ID:', id);
-
-        const pending = await ExpoInAppMessaging.getPendingMessage();
-        if (pending) {
-          setLocalMessage(pending);
-          setIsModalVisible(true);
-        }
-      } catch (e) {
-        console.error("Erro ao buscar mensagem pendente:", e);
+      const pending = await ExpoInAppMessaging.getPendingMessage();
+      if (pending) {
+        setMessage(pending);
+        setVisible(true);
       }
     }
     checkPending();
   }, []);
 
   useEffect(() => {
-    if (payloadFromEvent) {
-      setLocalMessage(payloadFromEvent);
-      setIsModalVisible(true);
+    if (payload) {
+      setMessage(payload);
+      setVisible(true);
     }
-  }, [payloadFromEvent]);
+  }, [payload]);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      {/* ... seu código de fundo ... */}
-      
-      <CustomIAMModal 
-        visible={isModalVisible} 
-        data={localMessage} 
-        onClose={() => setIsModalVisible(false)} 
+      <CustomIAMModal
+        visible={visible}
+        data={message}
+        onClose={() => setVisible(false)}
       />
     </SafeAreaView>
   );
 }
+```
 
-🛠️ API Reference
- 
-Método.             Descrição
+Before 
+<img width="1080" height="2220" alt="Screenshot_1775434402" src="https://github.com/user-attachments/assets/dae95329-88b8-4415-9c9c-fd02b8e52024" />
 
-getPendingMessage() Retorna uma Promise com a mensagem que disparou a abertura do app.
 
-setMessagesSuppressed(bool) Bloqueia ou libera a exibição de mensagens programaticamente.
+After 
+<img width="1206" height="2622" alt="Simulator Screenshot - iPhone 17 Pro - 2026-04-05 at 19 40 45" src="https://github.com/user-attachments/assets/4828778a-203c-4f6c-9cde-f7ac8f699bb6" />
 
-triggerEvent(name)Dispara um gatilho de evento para o Firebase (Analytics Trigger).
 
-onMessageEvento disparado quando uma nova mensagem é interceptada.
+------------------------------------------------------------------------
 
-📄 Licença
+## 🛠️ API
+
+-   getPendingMessage()
+-   setMessagesSuppressed(boolean)
+-   triggerEvent(name)
+-   onMessage
+
+------------------------------------------------------------------------
+
+## 📄 Licença
+
 MIT © Rodrigo Souza
