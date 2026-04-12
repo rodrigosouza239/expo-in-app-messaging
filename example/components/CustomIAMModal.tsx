@@ -1,35 +1,57 @@
-import { Modal, TouchableOpacity, View, ImageBackground, Text, Linking, StyleSheet, Dimensions } from "react-native";
+import {
+  Modal,
+  TouchableOpacity,
+  View,
+  ImageBackground,
+  Text,
+  Linking,
+  StyleSheet,
+  Dimensions,
+} from 'react-native';
+import ExpoInAppMessaging from 'expo-in-app-messaging';
+import { InAppMessagePayload } from 'expo-in-app-messaging';
 
 const { height } = Dimensions.get('window');
 
-export const CustomIAMModal = ({ visible, data, onClose }) => {
+type Props = {
+  visible: boolean;
+  data: InAppMessagePayload | null;
+  onClose: () => void;
+};
+
+export const CustomIAMModal = ({ visible, data, onClose }: Props) => {
   if (!data) return null;
+
+  const handleAction = async () => {
+    await ExpoInAppMessaging.logClick();
+    if (data.actionUrl) Linking.openURL(data.actionUrl);
+    onClose();
+  };
+
+  const handleDismiss = async () => {
+    await ExpoInAppMessaging.logDismiss();
+    onClose();
+  };
 
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+          <TouchableOpacity style={styles.closeBtn} onPress={handleDismiss}>
             <Text style={styles.closeText}>✕</Text>
           </TouchableOpacity>
 
-          <ImageBackground 
-            source={require("../assets/pop-up.png")} 
+          <ImageBackground
+            source={require('../assets/pop-up.png')}
             style={styles.backgroundImage}
             resizeMode="cover"
           >
             <View style={styles.contentContainer}>
               <Text style={styles.title}>{data.title?.toUpperCase()}</Text>
-              
+
               <Text style={styles.body}>{data.body}</Text>
 
-              <TouchableOpacity 
-                style={styles.button} 
-                onPress={() => {
-                   if (data.actionUrl) Linking.openURL(data.actionUrl);
-                   onClose();
-                }}
-              >
+              <TouchableOpacity style={styles.button} onPress={handleAction}>
                 <Text style={styles.buttonText}>Simule Agora</Text>
               </TouchableOpacity>
             </View>
@@ -50,7 +72,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: '90%',
     height: height * 0.7,
-    backgroundColor: '#005CA9', 
+    backgroundColor: '#005CA9',
     borderRadius: 20,
     overflow: 'hidden',
     elevation: 20,
@@ -66,7 +88,6 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 25,
     alignItems: 'center',
-    borderTopWidth: 0,
   },
   closeBtn: {
     position: 'absolute',
@@ -83,7 +104,7 @@ const styles = StyleSheet.create({
   closeText: {
     color: '#FFF',
     fontSize: 18,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
   },
   title: {
     fontSize: 26,

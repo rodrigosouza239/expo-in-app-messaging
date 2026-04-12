@@ -1,161 +1,254 @@
 import { useEvent } from 'expo';
-import ExpoInAppMessaging from 'expo-in-app-messaging';
+import ExpoInAppMessaging, { InAppMessagePayload } from 'expo-in-app-messaging';
 import installations from '@react-native-firebase/installations';
 import { useEffect, useState } from 'react';
-import { Button, SafeAreaView, ScrollView, Text, View, Image, TextStyle, ViewStyle, ImageStyle } from 'react-native';
+import { Button, ScrollView, Text, View, StyleSheet } from 'react-native';
 import { CustomIAMModal } from './components/CustomIAMModal';
+
+type LogEntry = { time: string; msg: string };
 
 export default function App() {
   const payloadFromEvent = useEvent(ExpoInAppMessaging, 'onMessage');
-  
-  const [localMessage, setLocalMessage] = useState<any>(null);
+
+  const [localMessage, setLocalMessage] = useState<InAppMessagePayload | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [installationId, setInstallationId] = useState('...');
+  const [logs, setLogs] = useState<LogEntry[]>([]);
 
+  const log = (msg: string) => {
+    const time = new Date().toLocaleTimeString();
+    setLogs((prev) => [{ time, msg }, ...prev].slice(0, 20));
+    console.log(`[FIAM] ${msg}`);
+  };
+
+  // Get Firebase Installation ID for test device setup
   useEffect(() => {
-  
-    async function checkPending() {
-      try {
-        const id = await installations().getId();
-        console.log('🆔 ID para Teste no Firebase:', id);
-        const pending = await ExpoInAppMessaging.getPendingMessage();
-        console.log('🔍 Verificando mensagem pendente (Android Boot):', pending);
-        
-        if (pending) {
-          setLocalMessage(pending);
-          setIsModalVisible(true);
-        }
-      } catch (e) {
-        console.error("Erro ao buscar pendentes:", e);
-      }
-    }
-
-    checkPending();
+    installations()
+      .getId()
+      .then((id) => {
+        setInstallationId(id);
+        log(`Installation ID: ${id}`);
+      })
+      .catch((e) => log(`Error getting ID: ${e.message}`));
   }, []);
 
+  // Cold-start: check for pending message (iOS only)
+  useEffect(() => {
+    ExpoInAppMessaging.getPendingMessage()
+      .then((pending) => {
+        if (pending) {
+          log(`Cold-start message: ${pending.type} — "${pending.title}"`);
+          setLocalMessage(pending);
+          setIsModalVisible(true);
+        } else {
+          log('No pending message on cold-start');
+        }
+      })
+      .catch((e) => log(`getPendingMessage error: ${e.message}`));
+  }, []);
+
+  // Runtime: listen for new messages via event
   useEffect(() => {
     if (payloadFromEvent) {
-      console.log('📩 Nova mensagem recebida via Evento:', payloadFromEvent);
+      log(`onMessage event: ${payloadFromEvent.type} — "${payloadFromEvent.title}"`);
+      log(`  campaignId: ${payloadFromEvent.campaignId}`);
+      if (payloadFromEvent.isTestMessage !== undefined) {
+        log(`  isTestMessage: ${payloadFromEvent.isTestMessage}`);
+      }
+      if (Object.keys(payloadFromEvent.data ?? {}).length > 0) {
+        log(`  data: ${JSON.stringify(payloadFromEvent.data)}`);
+      }
       setLocalMessage(payloadFromEvent);
       setIsModalVisible(true);
     }
   }, [payloadFromEvent]);
 
-  const handleClose = () => {
+  const handleModalClose = () => {
     setIsModalVisible(false);
-    // Opcional: setLocalMessage(null) se você não quiser manter o card na tela atrás do modal
   };
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <ScrollView style={styles.container}>
-          <Text style={styles.header}>FIAM Custom Test</Text>
+          <Text style={styles.header}>FIAM Custom Test v1.1</Text>
 
-          <Group name="Controle de Exibição">
+          {/* Installation ID — needed to register test device in Firebase Console */}
+          <Group name="Firebase Installation ID">
+            <Text selectable style={styles.idText}>
+              {installationId}
+            </Text>
+            <Text style={styles.hint}>
+              Copy this ID and add it in Firebase Console → In-App Messaging → Test on device
+            </Text>
+          </Group>
+
+          {/* Message controls */}
+          <Group name="Message Controls">
             <Button
-              title="Bloquear Mensagens"
-              onPress={() => ExpoInAppMessaging.setMessagesSuppressed(true)}
+              title="Suppress Messages"
+              onPress={() => {
+                ExpoInAppMessaging.setMessagesSuppressed(true);
+                log('Messages suppressed');
+              }}
             />
+            <View style={styles.spacer} />
             <Button
-              title="Liberar Mensagens"
-              onPress={() => ExpoInAppMessaging.setMessagesSuppressed(false)}
+              title="Resume Messages"
+              onPress={() => {
+                ExpoInAppMessaging.setMessagesSuppressed(false);
+                log('Messages resumed');
+              }}
             />
           </Group>
 
-          <Group name="Gatilho Programático">
+          {/* Manual trigger */}
+          <Group name="Manual Trigger">
             <Button
-              title="Disparar Evento 'teste_manual'"
-              onPress={() => ExpoInAppMessaging.triggerEvent('teste_manual')}
+              title="Trigger 'teste_manual'"
+              onPress={() => {
+                ExpoInAppMessaging.triggerEvent('teste_manual');
+                log("triggerEvent('teste_manual') called");
+              }}
             />
           </Group>
 
-          <Group name="Status da Mensagem">
+          {/* Last received message */}
+          <Group name="Last Message">
             {localMessage ? (
-              <View style={styles.card}>
-                <Text style={styles.typeTag}>Tipo: {localMessage.type}</Text>
-                <Text style={styles.title}>{localMessage.title}</Text>
-                <Text style={styles.body}>{localMessage.body}</Text>
-                
-                {localMessage.imageUrl && (
-                  <Image
-                    source={{ uri: localMessage.imageUrl }}
-                    style={styles.previewImage}
-                  />
+              <View style={styles.messageCard}>
+                <Row label="Type" value={localMessage.type} />
+                <Row label="Title" value={localMessage.title || '—'} />
+                <Row label="Body" value={localMessage.body || '—'} />
+                <Row label="Campaign ID" value={localMessage.campaignId || '—'} />
+                <Row label="Campaign Name" value={localMessage.campaignName || '—'} />
+                {localMessage.isTestMessage !== undefined && (
+                  <Row label="Test Message" value={String(localMessage.isTestMessage)} />
                 )}
-                
-                <View style={{ marginTop: 10 }}>
-                  <Button
-                    title="Reabrir Modal"
-                    onPress={() => setIsModalVisible(true)}
-                  />
-                  <View style={{ height: 10 }} />
-                  <Button title="Limpar Estado" color="red" onPress={() => setLocalMessage(null)} />
-                </View>
+                <Row label="Image URL" value={localMessage.imageUrl ? 'yes' : 'none'} />
+                <Row label="Action URL" value={localMessage.actionUrl ? 'yes' : 'none'} />
+                <Row
+                  label="Custom Data"
+                  value={
+                    Object.keys(localMessage.data ?? {}).length > 0
+                      ? JSON.stringify(localMessage.data)
+                      : 'none'
+                  }
+                />
+
+                <View style={styles.spacer} />
+                <Button title="Reopen Modal" onPress={() => setIsModalVisible(true)} />
+                <View style={styles.spacer} />
+                <Button title="Clear" color="red" onPress={() => setLocalMessage(null)} />
               </View>
             ) : (
-              <Text style={{ textAlign: 'center', color: '#999' }}>Aguardando disparo do Firebase...</Text>
+              <Text style={styles.emptyText}>Waiting for Firebase message...</Text>
+            )}
+          </Group>
+
+          {/* Live logs */}
+          <Group name="Event Log">
+            {logs.length === 0 ? (
+              <Text style={styles.emptyText}>No events yet</Text>
+            ) : (
+              logs.map((entry, i) => (
+                <Text key={i} style={styles.logEntry}>
+                  <Text style={styles.logTime}>{entry.time} </Text>
+                  {entry.msg}
+                </Text>
+              ))
             )}
           </Group>
         </ScrollView>
-      </SafeAreaView>
+      </View>
 
-      <CustomIAMModal 
-        visible={isModalVisible} 
-        data={localMessage} 
-        onClose={handleClose} 
+      <CustomIAMModal
+        visible={isModalVisible}
+        data={localMessage}
+        onClose={handleModalClose}
       />
     </>
   );
 }
 
-function Group(props: { name: string; children: React.ReactNode }) {
+function Group({ name, children }: { name: string; children: React.ReactNode }) {
   return (
     <View style={styles.group}>
-      <Text style={styles.groupHeader}>{props.name}</Text>
-      {props.children}
+      <Text style={styles.groupHeader}>{name}</Text>
+      {children}
     </View>
   );
 }
 
-const styles: { [key: string]: any } = {
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue} numberOfLines={1}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f5f5f5', paddingTop: 44 },
   header: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     marginHorizontal: 20,
-    marginTop: 40,
-    marginBottom: 10,
-    color: '#333'
-  },
-  groupHeader: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 15,
-    color: '#555'
+    marginTop: 20,
+    marginBottom: 8,
+    color: '#111',
   },
   group: {
-    margin: 20,
+    margin: 16,
     backgroundColor: '#fff',
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
   },
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
+  groupHeader: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#888',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
   },
-  card: {
-    padding: 15,
+  idText: {
+    fontFamily: 'monospace',
+    fontSize: 12,
+    color: '#333',
+    marginBottom: 6,
+  },
+  hint: {
+    fontSize: 12,
+    color: '#999',
+    lineHeight: 16,
+  },
+  spacer: { height: 10 },
+  messageCard: {
     backgroundColor: '#fafafa',
+    borderRadius: 8,
+    padding: 12,
     borderWidth: 1,
     borderColor: '#eee',
-    borderRadius: 8,
   },
-  title: { fontSize: 18, fontWeight: 'bold', color: '#000' },
-  body: { fontSize: 14, color: '#444', marginVertical: 8 },
-  typeTag: { fontSize: 10, color: '#007AFF', marginBottom: 5, fontWeight: 'bold', textTransform: 'uppercase' },
-  previewImage: { width: '100%', height: 150, borderRadius: 8, marginTop: 10, backgroundColor: '#ddd' }
-};
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  rowLabel: { fontSize: 12, color: '#888', flex: 1 },
+  rowValue: { fontSize: 12, color: '#333', flex: 2, textAlign: 'right' },
+  emptyText: { textAlign: 'center', color: '#bbb', fontSize: 13, paddingVertical: 8 },
+  logEntry: { fontSize: 11, color: '#555', paddingVertical: 2, fontFamily: 'monospace' },
+  logTime: { color: '#aaa' },
+});
