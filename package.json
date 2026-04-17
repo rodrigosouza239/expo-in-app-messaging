@@ -1,6 +1,6 @@
 {
   "name": "@rodrigo-souza/expo-in-app-messaging",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "Expo module for Firebase In-App Messaging integration with custom UI support.",
   "access": "public",
   "main": "build/index.js",
@@ -19,15 +19,25 @@
   "files": [
     "build",
     "ios",
-    "android",
+    "android/build.gradle",
+    "android/src",
     "app.plugin.js",
     "expo-module.config.json"
   ],
   "keywords": [
-    "react-native",
     "expo",
+    "expo-module",
+    "react-native",
+    "firebase",
+    "firebase-in-app-messaging",
+    "in-app-messaging",
+    "fiam",
+    "custom-ui",
+    "custom-display",
     "expo-in-app-messaging",
-    "ExpoInAppMessaging"
+    "push-notification",
+    "ios",
+    "android"
   ],
   "repository": "https://github.com/rodrigosouza239/expo-in-app-messaging",
   "bugs": {

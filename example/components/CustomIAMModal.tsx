@@ -8,8 +8,8 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import ExpoInAppMessaging from 'expo-in-app-messaging';
-import { InAppMessagePayload } from 'expo-in-app-messaging';
+import ExpoInAppMessaging from '@rodrigo-souza/expo-in-app-messaging';
+import { InAppMessagePayload } from '@rodrigo-souza/expo-in-app-messaging';
 
 const { height } = Dimensions.get('window');
 

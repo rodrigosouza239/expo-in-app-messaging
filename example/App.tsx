@@ -1,5 +1,5 @@
 import { useEvent } from 'expo';
-import ExpoInAppMessaging, { InAppMessagePayload } from 'expo-in-app-messaging';
+import ExpoInAppMessaging, { InAppMessagePayload } from '@rodrigo-souza/expo-in-app-messaging';
 import installations from '@react-native-firebase/installations';
 import { useEffect, useState } from 'react';
 import { Button, ScrollView, Text, View, StyleSheet } from 'react-native';

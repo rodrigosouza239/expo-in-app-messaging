@@ -55,3 +55,7 @@ yarn-error.log
 
 # Expo
 .expo/*
+
+# Firebase — never commit these, they contain API keys
+example/GoogleService-Info.plist
+example/google-services.json

@@ -2,9 +2,9 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-     "paths": {
-       "expo-in-app-messaging": ["../src/index"],
-       "expo-in-app-messaging/*": ["../src/*"]
-     }
+    //  "paths": {
+    //    "expo-in-app-messaging": ["../src/index"],
+    //    "expo-in-app-messaging/*": ["../src/*"]
+    //  }
   }
 }

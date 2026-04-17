@@ -1,0 +1,9 @@
+{
+  "githubUrl": "https://github.com/rodrigosouza239/expo-in-app-messaging",
+  "npmPkg": "@rodrigo-souza/expo-in-app-messaging",
+  "ios": true,
+  "android": true,
+  "expoGo": false,
+  "newArchitecture": true,
+  "configPlugin": true
+}
